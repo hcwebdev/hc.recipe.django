@@ -1,0 +1,10 @@
+[buildout]
+develop = 
+    src/hc.recipe.django
+parts = test
+
+[test]
+recipe = zc.recipe.testrunner
+eggs = hc.recipe.django [tests]
+defaults = ['-s', 'hc.recipe.django']
+
