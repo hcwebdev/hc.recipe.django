@@ -134,7 +134,7 @@ class Recipe(object):
             args            = (project, settings, logfile)
             arguments       = "'%s.%s', logfile='%s'" % args
             
-            if not manage_script:
+            if manage_script:
                 installed = zc.buildout.easy_install.scripts(
                     [( '%s.%s' % (manage_script, protocol), '%s.commands.%s' % (recipe, protocol), 'main' )],
                     working_set,
