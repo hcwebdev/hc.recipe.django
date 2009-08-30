@@ -100,7 +100,7 @@ class Recipe(object):
         # Copy the admin media to parts if Django egg is unzipped
         installed_media = self.extract_admin_media(working_set)
         
-        return installed_eggs + installed_scripts
+        return installed_eggs + installed_scripts + installed_media
         
     
     def update(self):

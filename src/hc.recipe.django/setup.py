@@ -11,7 +11,7 @@ def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 name = 'hc.recipe.django'
-version = '0.3'
+version = '0.3.1'
 long_description = '\n'.join([
     read('docs', 'README.txt'),
     'Changelog',
