@@ -2,6 +2,7 @@
 """Recipe for Django"""
 
 import os
+import shutil
 import re
 
 import zc.buildout
@@ -18,11 +19,13 @@ class Recipe(object):
         self.logger = logging.getLogger(self.name)
         
         self.egg = zc.recipe.egg.Egg(buildout, options['recipe'], options)
+        self.django_re = re.compile(r'\bDjango\b')
         
         python = buildout['buildout']['python']
         options['executable'] = buildout[python]['executable']
         options['bin-directory'] = buildout['buildout']['bin-directory']
         
+        options.setdefault('extract-media', 'false')
         options.setdefault('wsgi', 'false')
         options.setdefault('wsgilog', '')
         options.setdefault('settings', 'settings')
@@ -94,6 +97,9 @@ class Recipe(object):
         for i in self.create_wsgi_script(working_set):
             installed_scripts.append(i)
         
+        # Copy the admin media to parts if Django egg is unzipped
+        installed_media = self.extract_admin_media(working_set)
+        
         return installed_eggs + installed_scripts
         
     
@@ -105,10 +111,9 @@ class Recipe(object):
     def ensure_django_egg_included(self):
         eggs = self.options.get('eggs', '').split()
         found = False
-        pattern = re.compile(r'\bDjango\b')
         
         for egg in eggs:
-            if pattern.match(egg):
+            if self.django_re.match(egg):
                 found = True
         
         if not found:
@@ -116,6 +121,22 @@ class Recipe(object):
         
         self.options['eggs'] = '\n'.join(eggs)
     
+    def extract_admin_media(self, working_set):
+        installed   = []
+        target_dir = os.path.join( self.buildout['buildout']['parts-directory'], 'django_admin_media' )
+        
+        if os.path.exists(target_dir):
+            shutil.rmtree(target_dir)
+        
+        if self.options.get('extract-media', '').lower() == 'true':
+            for dist in working_set.by_key.values():
+                if self.django_re.match(dist.project_name):
+                    media_dir = os.path.join(dist.location, 'django/contrib/admin/media')
+                    if os.path.exists(media_dir):
+                        shutil.copytree(media_dir, target_dir)
+                        installed.append(target_dir)
+        
+        return installed
     
     def create_wsgi_script(self, working_set):
         installed   = []
