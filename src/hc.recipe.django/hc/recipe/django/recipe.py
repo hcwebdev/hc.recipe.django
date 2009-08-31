@@ -125,16 +125,17 @@ class Recipe(object):
         installed   = []
         target_dir = os.path.join( self.buildout['buildout']['parts-directory'], 'django_admin_media' )
         
-        if os.path.exists(target_dir):
-            shutil.rmtree(target_dir)
-        
         if self.options.get('extract-media', '').lower() == 'true':
+            if os.path.exists(target_dir):
+                shutil.rmtree(target_dir)
+            
             for dist in working_set.by_key.values():
                 if self.django_re.match(dist.project_name):
                     media_dir = os.path.join(dist.location, 'django/contrib/admin/media')
                     if os.path.exists(media_dir):
                         shutil.copytree(media_dir, target_dir)
                         installed.append(target_dir)
+                        break
         
         return installed
     
