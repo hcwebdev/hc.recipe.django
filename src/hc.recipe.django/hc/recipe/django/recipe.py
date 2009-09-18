@@ -154,7 +154,7 @@ class Recipe(object):
             wsgi_script_template = zc.buildout.easy_install.script_header + wsgi_template
             zc.buildout.easy_install.script_template = wsgi_script_template
             
-            project         = self.options['project'
+            project         = self.options['project']
             recipe          = self.options['recipe']
             settings        = self.options['settings']
             wsgi_file_name  = self.options['wsgi-file-name']

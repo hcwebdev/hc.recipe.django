@@ -45,7 +45,11 @@ test
 wsgi
     An extra script is generated in the bin folder when this is set to ``true``. 
     This can be used with mod_wsgi to deploy the project. The name of the script 
-    is ``manage-script``.wsgi.
+    is ``PART_NAME``.wsgi.
+
+wsgi-file-name
+    Provide an alternate name for the wsgi script.  Will append ``.wsgi`` if it doesn't
+    end with it.
 
 wsgilog
     In case the WSGI server you're using does not allow printing to stdout, you can 
@@ -130,5 +134,71 @@ and Django apps which are to be tested::
     <BLANKLINE>
     if __name__ == '__main__':
         hc.recipe.django.commands.test.main('project.testing', 'app1', 'app2')
+
+
+We'll adjust the buildout to generate a wsgi script::
+
+    >>> write('buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = django
+    ... index = http://pypi.python.org/simple
+    ...
+    ... [django]
+    ... recipe = hc.recipe.django
+    ... project = project
+    ... manage-script = manage_development
+    ... settings = development
+    ... test-script = run_project_tests
+    ... test-settings = testing
+    ... test =
+    ...       app1
+    ...       app2
+    ... wsgi = true
+    ... """)
+
+
+Running the buildout gives us::
+
+    >>> print system(buildout)
+    Uninstalling django.
+    Installing django.
+    ...
+    Generated script '/sample-buildout/bin/django.wsgi'.
+    <BLANKLINE>
+
+
+We'll adjust the buildout to set the wsgi script name::
+
+    >>> write('buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = django
+    ... index = http://pypi.python.org/simple
+    ...
+    ... [django]
+    ... recipe = hc.recipe.django
+    ... project = project
+    ... manage-script = manage_development
+    ... settings = development
+    ... test-script = run_project_tests
+    ... test-settings = testing
+    ... test =
+    ...       app1
+    ...       app2
+    ... wsgi = true
+    ... wsgi-file-name = development
+    ... """)
+
+
+Running the buildout gives us::
+
+    >>> print system(buildout)
+    Uninstalling django.
+    Installing django.
+    ...
+    Generated script '/sample-buildout/bin/development.wsgi'.
+    <BLANKLINE>
+
 
 
