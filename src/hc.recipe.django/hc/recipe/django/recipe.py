@@ -10,6 +10,7 @@ import zc.recipe.egg
 
 import logging
 
+TRUE_VALUES = ('yes', 'true', '1', 'on')
 
 class Recipe(object):
     """zc.buildout recipe"""
@@ -27,9 +28,15 @@ class Recipe(object):
         
         options.setdefault('extract-media', 'false')
         options.setdefault('wsgi', 'false')
+        options.setdefault('wsgi-file-name', name)
         options.setdefault('wsgilog', '')
         options.setdefault('settings', 'settings')
         options.setdefault('test-script', 'runtests')
+        
+        if not options['wsgi-file-name'].endswith('.wsgi'):
+            options['wsgi-file-name'] = '%s.wsgi' % options['wsgi-file-name']
+        
+        options['wsgi-script'] = os.path.join(options['bin-directory'], options['wsgi-file-name'])
 
     def install(self):
         """Installer"""
@@ -125,7 +132,7 @@ class Recipe(object):
         installed   = []
         target_dir = os.path.join( self.buildout['buildout']['parts-directory'], 'django_admin_media' )
         
-        if self.options.get('extract-media', '').lower() == 'true':
+        if self.options['extract-media'] in TRUE_VALUES:
             if os.path.exists(target_dir):
                 shutil.rmtree(target_dir)
             
@@ -141,39 +148,34 @@ class Recipe(object):
     
     def create_wsgi_script(self, working_set):
         installed   = []
-        protocol    = 'wsgi'
         
-        if self.options.get(protocol, '').lower() == 'true':
+        if self.options['wsgi'] in TRUE_VALUES:
             _script_template = zc.buildout.easy_install.script_template
             wsgi_script_template = zc.buildout.easy_install.script_header + wsgi_template
             zc.buildout.easy_install.script_template = wsgi_script_template
             
-            project         = self.options['project']
-            manage_script   = self.options.get('manage-script')
+            project         = self.options['project'
             recipe          = self.options['recipe']
             settings        = self.options['settings']
-            logfile         = self.options.get('wsgilog')
+            wsgi_file_name  = self.options['wsgi-file-name']
+            logfile         = self.options['wsgilog']
             args            = (project, settings, logfile)
             arguments       = "'%s.%s', logfile='%s'" % args
             
-            if manage_script:
-                installed = zc.buildout.easy_install.scripts(
-                    [( '%s.%s' % (manage_script, protocol), '%s.commands.%s' % (recipe, protocol), 'main' )],
-                    working_set,
-                    self.options['executable'], 
-                    self.options['bin-directory'],
-                    arguments=arguments
-                )
-            else:
-                warning = "You must provide 'manage-script' to build the wsgi option (skipping)."
-                self.logger.warning(warning)
+            installed = zc.buildout.easy_install.scripts(
+                [( wsgi_file_name, '%s.commands.wsgi' % recipe, 'main' )],
+                working_set,
+                self.options['executable'], 
+                self.options['bin-directory'],
+                arguments=arguments
+            )
             
             zc.buildout.easy_install.script_template = _script_template
         
         return installed
     
 
-#
+
 wsgi_template = '''
 %(relative_paths_setup)s
 import sys
