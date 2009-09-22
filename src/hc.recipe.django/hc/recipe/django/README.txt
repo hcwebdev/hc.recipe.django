@@ -133,7 +133,11 @@ and Django apps which are to be tested::
     import hc.recipe.django.commands.test
     <BLANKLINE>
     if __name__ == '__main__':
-        hc.recipe.django.commands.test.main('project.testing', 'app1', 'app2')
+        varg = '-v'
+        vlevel = '1'
+        if len(sys.argv) > 1 and sys.argv[1] == '-v':
+            vlevel = '2'
+        hc.recipe.django.commands.test.main('project.testing', varg, vlevel, 'app1', 'app2')
 
 
 We'll adjust the buildout to generate a wsgi script::

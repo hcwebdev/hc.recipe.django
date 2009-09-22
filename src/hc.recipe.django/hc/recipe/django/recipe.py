@@ -87,7 +87,11 @@ class Recipe(object):
         if apps_to_test:
             
             apps_to_test = ', '.join([ "'%s'" % app for app in apps_to_test ])
-            arguments = "'%s.%s', %s" % ( project, test_settings, apps_to_test )
+            arguments = "'%s.%s', varg, vlevel, %s" % ( project, test_settings, apps_to_test )
+            
+            _script_template = zc.buildout.easy_install.script_template
+            test_script_template = zc.buildout.easy_install.script_header + test_template
+            zc.buildout.easy_install.script_template = test_script_template
             
             installed = zc.buildout.easy_install.scripts(
                 [( test_script, '%s.commands.test' % recipe, 'main' )],
@@ -96,6 +100,8 @@ class Recipe(object):
                 self.options['bin-directory'],
                 arguments=arguments
             )
+            
+            zc.buildout.easy_install.script_template = _script_template
             
             for i in installed:
                 installed_scripts.append(i)
@@ -174,6 +180,23 @@ class Recipe(object):
         
         return installed
     
+
+test_template = '''
+%(relative_paths_setup)s
+import sys
+sys.path[0:0] = [
+  %(path)s,
+]
+%(initialization)s
+import %(module_name)s
+
+if __name__ == '__main__':
+    varg = '-v'
+    vlevel = '1'
+    if len(sys.argv) > 1 and sys.argv[1] == '-v':
+        vlevel = '2'
+    %(module_name)s.%(attrs)s(%(arguments)s)
+'''
 
 
 wsgi_template = '''
