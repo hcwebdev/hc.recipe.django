@@ -116,9 +116,10 @@ class Recipe(object):
         return installed_eggs + installed_scripts + installed_media
         
     
-    def update(self):
-        """Updater"""
-        pass
+    #def update(self):
+    #    """Updater"""
+    #    pass
+    update = install
     
     
     def ensure_django_egg_included(self):
